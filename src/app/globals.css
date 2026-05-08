@@ -1,0 +1,908 @@
+/*
+ * Universal Modernization Bridge — Management Dashboard
+ * Design Language: Cold / Dark / Technically Precise
+ *
+ * Palette:
+ *   Background:    #07090D  (near-black, blue-black bias)
+ *   Surface-1:     #0D1117  (panel base)
+ *   Surface-2:     #131920  (card surface)
+ *   Surface-3:     #1A2230  (elevated element)
+ *   Border:        #1E2D40  (structural borders)
+ *   Border-bright: #2B4060  (hover / focus borders)
+ *   Accent-cyan:   #00D4FF  (primary interactive)
+ *   Accent-green:  #00FF9C  (online / success)
+ *   Accent-amber:  #F59E0B  (warning)
+ *   Accent-red:    #FF3B5C  (critical / danger)
+ *   Text-primary:  #E2EAF4  (body copy)
+ *   Text-secondary:#7A8FA6  (muted labels)
+ *   Text-tertiary: #3A5068  (disabled, captions)
+ *
+ * Typography:
+ *   Display:  'JetBrains Mono', monospace   — headings, metrics, IDs
+ *   Body:     'IBM Plex Sans', sans-serif   — prose, labels, descriptions
+ *
+ * Usage:
+ *   @import this file in your Next.js globals.css
+ *   Apply the utility classes below directly in JSX className strings
+ *   or compose them in CSS Modules.
+ */
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   IMPORT FONTS
+───────────────────────────────────────────────────────────────────────────── */
+
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap');
+
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   DESIGN TOKENS
+───────────────────────────────────────────────────────────────────────────── */
+
+:root {
+  /* Backgrounds */
+  --bg-base:    #07090D;
+  --bg-panel:   #0D1117;
+  --bg-card:    #131920;
+  --bg-raised:  #1A2230;
+  --bg-hover:   #1E2D40;
+  --bg-active:  #243447;
+
+  /* Borders */
+  --border:         #1E2D40;
+  --border-bright:  #2B4060;
+  --border-focus:   #00D4FF40;
+
+  /* Accent palette */
+  --cyan:           #00D4FF;
+  --cyan-dim:       #00D4FF20;
+  --cyan-glow:      #00D4FF08;
+  --green:          #00FF9C;
+  --green-dim:      #00FF9C18;
+  --amber:          #F59E0B;
+  --amber-dim:      #F59E0B18;
+  --red:            #FF3B5C;
+  --red-dim:        #FF3B5C18;
+  --purple:         #9B6DFF;
+  --purple-dim:     #9B6DFF18;
+
+  /* Text */
+  --text-primary:   #E2EAF4;
+  --text-secondary: #7A8FA6;
+  --text-tertiary:  #3A5068;
+  --text-accent:    #00D4FF;
+  --text-success:   #00FF9C;
+  --text-warning:   #F59E0B;
+  --text-danger:    #FF3B5C;
+
+  /* Typography */
+  --font-mono:  'JetBrains Mono', 'Courier New', monospace;
+  --font-sans:  'IBM Plex Sans', system-ui, sans-serif;
+
+  /* Sizing */
+  --radius-sm:  4px;
+  --radius-md:  8px;
+  --radius-lg:  12px;
+  --radius-xl:  16px;
+
+  /* Spacing scale (4px base) */
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-5:  20px;
+  --space-6:  24px;
+  --space-8:  32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  /* Animation */
+  --ease-snappy: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-precise: cubic-bezier(0.4, 0, 0.2, 1);
+  --duration-fast: 120ms;
+  --duration-base: 200ms;
+  --duration-slow: 350ms;
+
+  /* Scanline overlay opacity */
+  --scanline-opacity: 0.03;
+}
+
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   RESET & BASE
+───────────────────────────────────────────────────────────────────────────── */
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  background-color: var(--bg-base);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.6;
+  min-height: 100vh;
+
+  /* Subtle noise texture for depth — remove if performance is critical */
+  background-image:
+    radial-gradient(ellipse 80% 50% at 20% 0%, #00D4FF06 0%, transparent 60%),
+    radial-gradient(ellipse 60% 40% at 80% 100%, #9B6DFF05 0%, transparent 60%);
+}
+
+/* Optional scanline CRT overlay — apply to a fixed::after pseudo on body */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, var(--scanline-opacity)) 2px,
+    rgba(0, 0, 0, var(--scanline-opacity)) 4px
+  );
+  pointer-events: none;
+  z-index: 9999;
+}
+
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   LAYOUT — SIDEBAR + MAIN
+───────────────────────────────────────────────────────────────────────────── */
+
+.bridge-layout {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  grid-template-rows: auto 1fr;
+  grid-template-areas:
+    "sidebar topbar"
+    "sidebar main";
+  min-height: 100vh;
+}
+
+.bridge-sidebar {
+  grid-area: sidebar;
+  background: var(--bg-panel);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-6) 0;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+}
+
+.bridge-topbar {
+  grid-area: topbar;
+  height: 56px;
+  background: var(--bg-panel);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 var(--space-6);
+  gap: var(--space-4);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.bridge-main {
+  grid-area: main;
+  padding: var(--space-6);
+  overflow-y: auto;
+}
+
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   SIDEBAR
+───────────────────────────────────────────────────────────────────────────── */
+
+.bridge-logo {
+  padding: 0 var(--space-5) var(--space-6);
+  border-bottom: 1px solid var(--border);
+  margin-bottom: var(--space-4);
+}
+
+.bridge-logo__wordmark {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--cyan);
+}
+
+.bridge-logo__sub {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-tertiary);
+  letter-spacing: 0.08em;
+  margin-top: 2px;
+}
+
+.bridge-nav__group-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+  padding: var(--space-4) var(--space-5) var(--space-2);
+}
+
+.bridge-nav__item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-5);
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--text-secondary);
+  text-decoration: none;
+  border-left: 2px solid transparent;
+  transition: color var(--duration-fast) var(--ease-precise),
+              background var(--duration-fast) var(--ease-precise),
+              border-color var(--duration-fast) var(--ease-precise);
+  cursor: pointer;
+}
+
+.bridge-nav__item:hover {
+  color: var(--text-primary);
+  background: var(--bg-hover);
+  border-left-color: var(--border-bright);
+}
+
+.bridge-nav__item--active {
+  color: var(--cyan);
+  background: var(--cyan-dim);
+  border-left-color: var(--cyan);
+  font-weight: 500;
+}
+
+.bridge-nav__badge {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  background: var(--bg-raised);
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0 6px;
+  line-height: 18px;
+}
+
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   TOPBAR ELEMENTS
+───────────────────────────────────────────────────────────────────────────── */
+
+.bridge-breadcrumb {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-tertiary);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.bridge-breadcrumb__sep { color: var(--text-tertiary); opacity: 0.4; }
+.bridge-breadcrumb__current { color: var(--text-primary); }
+
+.bridge-system-clock {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-tertiary);
+  letter-spacing: 0.06em;
+}
+
+.bridge-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  padding: 3px 10px;
+  border-radius: 20px;
+  border: 1px solid;
+}
+
+.bridge-status-pill--online {
+  color: var(--green);
+  border-color: var(--green);
+  background: var(--green-dim);
+}
+.bridge-status-pill--warning {
+  color: var(--amber);
+  border-color: var(--amber);
+  background: var(--amber-dim);
+}
+.bridge-status-pill--critical {
+  color: var(--red);
+  border-color: var(--red);
+  background: var(--red-dim);
+}
+
+.bridge-status-pill__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  animation: pulse-status 2s ease-in-out infinite;
+}
+
+@keyframes pulse-status {
+  0%, 100% { opacity: 1;   transform: scale(1);   }
+  50%       { opacity: 0.5; transform: scale(0.75); }
+}
+
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   KPI METRIC CARDS
+───────────────────────────────────────────────────────────────────────────── */
+
+.bridge-metric-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+}
+
+.bridge-metric-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  position: relative;
+  overflow: hidden;
+  transition: border-color var(--duration-base) var(--ease-precise),
+              background var(--duration-base) var(--ease-precise);
+}
+
+.bridge-metric-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent-color, var(--cyan)), transparent);
+  opacity: 0.6;
+}
+
+.bridge-metric-card:hover {
+  border-color: var(--border-bright);
+  background: var(--bg-raised);
+}
+
+/* Accent variants — set via inline style --accent-color */
+.bridge-metric-card--cyan   { --accent-color: var(--cyan);   }
+.bridge-metric-card--green  { --accent-color: var(--green);  }
+.bridge-metric-card--amber  { --accent-color: var(--amber);  }
+.bridge-metric-card--red    { --accent-color: var(--red);    }
+.bridge-metric-card--purple { --accent-color: var(--purple); }
+
+.bridge-metric-card__label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+  margin-bottom: var(--space-2);
+}
+
+.bridge-metric-card__value {
+  font-family: var(--font-mono);
+  font-size: 32px;
+  font-weight: 600;
+  color: var(--accent-color, var(--text-primary));
+  line-height: 1;
+  letter-spacing: -0.02em;
+  margin-bottom: var(--space-2);
+}
+
+.bridge-metric-card__unit {
+  font-size: 14px;
+  font-weight: 400;
+  opacity: 0.6;
+}
+
+.bridge-metric-card__delta {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.bridge-metric-card__delta--up   { color: var(--green); }
+.bridge-metric-card__delta--down { color: var(--red);   }
+
+.bridge-metric-card__sparkline {
+  position: absolute;
+  bottom: 0; right: 0;
+  width: 80px;
+  height: 40px;
+  opacity: 0.25;
+}
+
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   DATA TABLE
+───────────────────────────────────────────────────────────────────────────── */
+
+.bridge-table-wrap {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.bridge-table-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-4) var(--space-5);
+  border-bottom: 1px solid var(--border);
+}
+
+.bridge-table-title {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+.bridge-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.bridge-table thead tr {
+  background: var(--bg-raised);
+}
+
+.bridge-table th {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+  text-align: left;
+  padding: var(--space-3) var(--space-5);
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+.bridge-table td {
+  padding: var(--space-3) var(--space-5);
+  border-bottom: 1px solid var(--border);
+  color: var(--text-primary);
+  vertical-align: middle;
+}
+
+.bridge-table td:first-child { font-family: var(--font-mono); font-size: 12px; }
+
+.bridge-table tbody tr:hover td {
+  background: var(--bg-hover);
+}
+
+.bridge-table tbody tr:last-child td { border-bottom: none; }
+
+/* Monospace values (latency, IDs, timestamps) */
+.bridge-table .mono {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+/* Status badges in tables */
+.bridge-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  border: 1px solid;
+}
+
+.bridge-badge--ok       { color: var(--green);  border-color: var(--green);  background: var(--green-dim);  }
+.bridge-badge--warn     { color: var(--amber);  border-color: var(--amber);  background: var(--amber-dim);  }
+.bridge-badge--error    { color: var(--red);    border-color: var(--red);    background: var(--red-dim);    }
+.bridge-badge--inactive { color: var(--text-tertiary); border-color: var(--border); background: transparent; }
+
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   SYSTEM HEALTH MONITOR — Real-time ticker
+───────────────────────────────────────────────────────────────────────────── */
+
+.bridge-health-panel {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+}
+
+.bridge-health-panel__title {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+  margin-bottom: var(--space-4);
+}
+
+.bridge-health-row {
+  display: grid;
+  grid-template-columns: 160px 1fr 80px;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.bridge-health-row:last-child { border-bottom: none; }
+
+.bridge-health-row__label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.bridge-health-bar-track {
+  height: 4px;
+  background: var(--bg-raised);
+  border-radius: 2px;
+  overflow: hidden;
+  position: relative;
+}
+
+.bridge-health-bar-fill {
+  height: 100%;
+  border-radius: 2px;
+  background: var(--bar-color, var(--cyan));
+  transition: width 600ms var(--ease-snappy);
+}
+
+.bridge-health-row__value {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--bar-color, var(--cyan));
+  text-align: right;
+}
+
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   LOG STREAM — Terminal output pane
+───────────────────────────────────────────────────────────────────────────── */
+
+.bridge-log-stream {
+  background: var(--bg-base);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.8;
+  padding: var(--space-4);
+  max-height: 320px;
+  overflow-y: auto;
+
+  /* Custom scrollbar */
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
+.bridge-log-stream::-webkit-scrollbar { width: 4px; }
+.bridge-log-stream::-webkit-scrollbar-track { background: transparent; }
+.bridge-log-stream::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+.bridge-log-line { display: flex; gap: var(--space-3); align-items: baseline; }
+.bridge-log-line__ts   { color: var(--text-tertiary); min-width: 80px; flex-shrink: 0; }
+.bridge-log-line__tag  { min-width: 60px; flex-shrink: 0; font-weight: 600; }
+.bridge-log-line__msg  { color: var(--text-secondary); }
+
+.bridge-log-line--info  .bridge-log-line__tag { color: var(--cyan);  }
+.bridge-log-line--ok    .bridge-log-line__tag { color: var(--green); }
+.bridge-log-line--warn  .bridge-log-line__tag { color: var(--amber); }
+.bridge-log-line--error .bridge-log-line__tag { color: var(--red);   }
+
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   BUTTONS
+───────────────────────────────────────────────────────────────────────────── */
+
+.bridge-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 8px 16px;
+  border-radius: var(--radius-md);
+  border: 1px solid;
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease-precise);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.bridge-btn:focus-visible {
+  outline: 2px solid var(--cyan);
+  outline-offset: 2px;
+}
+
+.bridge-btn--primary {
+  color: var(--bg-base);
+  background: var(--cyan);
+  border-color: var(--cyan);
+}
+.bridge-btn--primary:hover {
+  background: #33DDFF;
+  border-color: #33DDFF;
+}
+
+.bridge-btn--ghost {
+  color: var(--text-secondary);
+  background: transparent;
+  border-color: var(--border);
+}
+.bridge-btn--ghost:hover {
+  color: var(--text-primary);
+  border-color: var(--border-bright);
+  background: var(--bg-hover);
+}
+
+.bridge-btn--danger {
+  color: var(--red);
+  background: var(--red-dim);
+  border-color: var(--red);
+}
+
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   FORM CONTROLS
+───────────────────────────────────────────────────────────────────────────── */
+
+.bridge-input {
+  background: var(--bg-base);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  padding: 8px 12px;
+  width: 100%;
+  transition: border-color var(--duration-fast) var(--ease-precise),
+              box-shadow   var(--duration-fast) var(--ease-precise);
+}
+
+.bridge-input::placeholder { color: var(--text-tertiary); }
+
+.bridge-input:focus {
+  outline: none;
+  border-color: var(--cyan);
+  box-shadow: 0 0 0 3px var(--border-focus);
+}
+
+.bridge-select {
+  appearance: none;
+  background: var(--bg-base) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%237A8FA6' d='M6 8L1 3h10z'/%3E%3C/svg%3E") no-repeat right 10px center;
+  padding-right: 32px;
+}
+
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   CONNECTOR MODULE CARDS (paid tier indicator)
+───────────────────────────────────────────────────────────────────────────── */
+
+.bridge-connector-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: var(--space-4);
+}
+
+.bridge-connector-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  position: relative;
+  cursor: default;
+  transition: border-color var(--duration-base) var(--ease-precise);
+}
+
+.bridge-connector-card:hover { border-color: var(--border-bright); }
+
+.bridge-connector-card__tier {
+  position: absolute;
+  top: var(--space-4);
+  right: var(--space-4);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--amber);
+  background: var(--amber-dim);
+  border: 1px solid var(--amber);
+  border-radius: 10px;
+  padding: 1px 8px;
+}
+
+.bridge-connector-card__icon {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--bg-raised);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: var(--space-3);
+  font-size: 18px;
+}
+
+.bridge-connector-card__name {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.bridge-connector-card__desc {
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.bridge-connector-card__protocols {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: var(--space-3);
+}
+
+.bridge-protocol-chip {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--text-tertiary);
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 2px 6px;
+  letter-spacing: 0.06em;
+}
+
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   CHART CONTAINERS
+   Wire these to Chart.js, Recharts, or custom canvas — colours provided.
+───────────────────────────────────────────────────────────────────────────── */
+
+.bridge-chart-wrap {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+}
+
+.bridge-chart-wrap__title {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+  margin-bottom: var(--space-4);
+}
+
+/* Chart.js / custom canvas config helpers (apply via JS) */
+:root {
+  --chart-line-1: #00D4FF;
+  --chart-line-2: #00FF9C;
+  --chart-line-3: #9B6DFF;
+  --chart-line-4: #F59E0B;
+  --chart-grid:   rgba(30, 45, 64, 0.8);
+  --chart-tick:   #3A5068;
+  --chart-fill-1: rgba(0, 212, 255, 0.08);
+  --chart-fill-2: rgba(0, 255, 156, 0.06);
+}
+
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   DIVIDERS & SPACING UTILITIES
+───────────────────────────────────────────────────────────────────────────── */
+
+.bridge-divider {
+  height: 1px;
+  background: var(--border);
+  margin: var(--space-6) 0;
+}
+
+.bridge-section { margin-bottom: var(--space-8); }
+
+.bridge-section__title {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+  margin-bottom: var(--space-4);
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.bridge-section__title::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   RESPONSIVE — MOBILE FALLBACK
+   The dashboard is desktop-first (enterprise tool) but gracefully degrades.
+───────────────────────────────────────────────────────────────────────────── */
+
+@media (max-width: 900px) {
+  .bridge-layout {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "topbar"
+      "main";
+  }
+  .bridge-sidebar { display: none; }
+  .bridge-metric-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 600px) {
+  .bridge-metric-grid { grid-template-columns: 1fr; }
+  .bridge-connector-grid { grid-template-columns: 1fr; }
+}
+
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   ACCESSIBILITY
+───────────────────────────────────────────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
