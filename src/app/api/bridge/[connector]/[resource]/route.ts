@@ -22,14 +22,14 @@ interface BridgeRecord {
   payload: Record<string, unknown>;
   meta: {
     latency_ms: number;
-    adapter: "sql" | "c-proc" | "flat-file";
+    adapter: string;
     cache_hit: boolean;
   };
 }
 
 interface ConnectorModule {
   id: ConnectorId;
-  adapterType: "sql" | "c-proc" | "flat-file";
+  adapterType: string;           // ← relaxed to string
   schemaVersion: string;
   fetch(resource: string, params: Record<string, string>): Promise<unknown[]>;
   normalise(raw: unknown): Record<string, unknown>;
@@ -94,7 +94,6 @@ function checkRateLimit(apiKey: string): boolean {
   return true;
 }
 
-// ── Safe log helper – ensures no undefined values ───────────
 async function safeLog(entry: {
   level?: string;
   connector?: string;
