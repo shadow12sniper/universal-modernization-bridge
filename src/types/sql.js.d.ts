@@ -1,8 +1,5 @@
- declare module "sql.js" {
-  interface SqlJsStatic {
-    Database: new (data?: ArrayLike<number> | Buffer | null) => Database;
-  }
-
+declare module "sql.js" {
+  // Constructor for the database
   interface Database {
     run(sql: string, params?: any[]): Database;
     exec(sql: string): QueryExecResult[];
@@ -23,9 +20,15 @@
     values: any[][];
   }
 
+  // What initSqlJs() resolves to – the SQL object containing the Database constructor
+  interface SqlJsStatic {
+    Database: new (data?: ArrayLike<number> | Buffer | null) => Database;
+  }
+
   export interface Config {
     locateFile?: (url: string, scriptDirectory: string) => string;
   }
 
-  export default function initSqlJs(config?: Config): Promise<Database>;
+  // The default export returns a Promise that resolves to the SQL static object
+  export default function initSqlJs(config?: Config): Promise<SqlJsStatic>;
 }
