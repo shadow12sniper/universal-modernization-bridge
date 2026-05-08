@@ -29,7 +29,7 @@ interface BridgeRecord {
 
 interface ConnectorModule {
   id: ConnectorId;
-  adapterType: string;           // ← relaxed to string
+  adapterType: string;
   schemaVersion: string;
   fetch(resource: string, params: Record<string, string>): Promise<unknown[]>;
   normalise(raw: unknown): Record<string, unknown>;
@@ -108,7 +108,7 @@ async function safeLog(entry: {
     level: entry.level ?? "OK",
     connector: entry.connector ?? "unknown",
     resource: entry.resource ?? "unknown",
-    latency: entry.latency ?? 0,
+    latency_ms: entry.latency ?? 0,
     cache: entry.cache ?? "MISS",
     status: entry.status ?? 200,
     message: entry.message ?? "",
