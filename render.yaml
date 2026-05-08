@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: umb-bridge
+    runtime: node
+    plan: free
+    buildCommand: npm install && npm run build
+    startCommand: npm run start
+    envVars:
+      - key: BRIDGE_API_KEYS
+        value: test-key-123,prod-key-789
+      - key: NODE_ENV
+        value: production
+    disk:
+      name: data
+      mountPath: /opt/render/project/src/data
+      sizeGB: 1
